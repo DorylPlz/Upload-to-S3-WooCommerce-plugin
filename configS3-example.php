@@ -5,7 +5,8 @@
             'key' => '',
             'secret' => '',
             'bucket' => '',
-            'region' => ''
+            'region' => '',
+            'folder' => ''
         ]
     ]
 
