@@ -14,29 +14,28 @@ require 'C:/Users/daryl/vendor/autoload.php';
 add_action( 'woocommerce_product_options_advanced', 'form');
 add_action('post_edit_form_tag', 'add_post_enctype');
 add_action( 'woocommerce_process_product_meta', 'PDF_save_file', 10, 2 );
-add_action('wp', 'BuscadorFicha_init');
-//add_action('wp_ajax_nopriv_BuscadorFicha_process', 'BuscadorFicha_process');
+add_action('admin_head-post.php', 'BuscadorFicha_init');
+
+add_action('wp_ajax_nopriv_BuscadorFicha_process', 'BuscadorFicha_process');
+
 
 function BuscadorFicha_init(){
-    wp_register_script('Buscador_Ficha', plugins_url('BuscadorAJAX.js', __FILE__), array('jquery'));
+    wp_register_script('Buscador_Ficha-js', plugins_url('/BuscadorFicha.js', __FILE__), array('jquery'));
     wp_enqueue_script('jquery');
-    wp_enqueue_script('Buscador_Ficha');
+    wp_enqueue_script('Buscador_Ficha-js');
 }
-/*
+
 function BuscadorFicha_process(){
-    $meta = esc_attr($_POST['postMeta']);
-    $args = array(
-        'meta_value' => $meta,
-        'meta_key' => 'metadatatexto'
-    );
-    $posts = json_encode(get_posts($args));
-    echo $posts;
+    $texto = esc_attr($_POST['txtbuscar']);
+    $objects = getObjects();
+    $json_objetos = json_encode(filterObjects($objects, $texto));
+    echo $json_objetos;
     exit();
-}*/
+}
 
 function form(){
-    $objects = getObjects();
-    $filter = filterObjects($objects, '');
+    
+    $filter = [];
     echo '<div class="options_group">';
     woocommerce_wp_text_input( array(
         'id'      => 'buscador',
@@ -46,13 +45,13 @@ function form(){
         'desc_tip' => true,
         'description' => 'Buscador por texto para ayudar encontrar una ficha ya existente.'
     ) );
+    echo '<p class="form-field buscador_field "><button id="botonBuscar" name="botonBuscar" type="button" class="short">Buscar</button></p>';
         woocommerce_wp_select( array(
                 'id'      => 'select_ficha',
                 'name'    => 'select_ficha',
                 'label'   => '',
-                'desc_tip' => true,
-                'description' => 'Cambiar ficha actual por otra ya existente en la nube.',
-                'options' =>  $filter
+                'options' =>  $filter,
+                'custom_attributes' => array('hidden' => 'hidden' )
             ) );
         echo '</div>';
 
@@ -73,42 +72,49 @@ function form(){
             'label'   => 'Ficha actual',
             'desc_tip' => true,
             'description' => 'Manual PDF del producto.',
-            'custom_attributes' => array('readonly' => 'readonly')
+            'custom_attributes' => array('readonly' => 'readonly' )
         ) );
     }
 }
 
 function PDF_save_file( $id, $post ){
-    if($_FILES["ManualPDF_nuevo"]['name'] != NULL){
-        $config = require('configS3.php');
-        $s3 = s3();
-        $S3Path = 'https://s3.'.$config['s3']['region'].'.amazonaws.com/' . $config['s3']['bucket'] . '/';
-        $folder = 'prueba/';
-    
-        $FilePath = $folder . basename($_FILES["ManualPDF_nuevo"]['name']);
-        $FullLink = $S3Path . $FilePath;
-        
-        try {
-            $file = $_FILES["ManualPDF_nuevo"]['tmp_name'];
+    $opcionSelect = esc_attr($_POST['select_ficha']);
+    $config = require('configS3.php');
+    $s3 = s3();
+    $S3Path = 'https://s3.'.$config['s3']['region'].'.amazonaws.com/' . $config['s3']['bucket'] . '/';
+    $folder = $config['s3']['folder'] . '/';
 
-            $s3->putObject(
-                array(
-                    'Bucket'=>$config['s3']['bucket'],
-                    'Key' =>  $FilePath,
-                    'SourceFile' => $file,
-                    'StorageClass' => 'REDUCED_REDUNDANCY'
-                )
-            );
 
+        if($_FILES["ManualPDF_nuevo"]['name'] != NULL){
+            $FilePath = $folder . basename($_FILES["ManualPDF_nuevo"]['name']);
+            $FullLink = $S3Path . $FilePath;
+            
+            try {
+                $file = $_FILES["ManualPDF_nuevo"]['tmp_name'];
+
+                $s3->putObject(
+                    array(
+                        'Bucket'=>$config['s3']['bucket'],
+                        'Key' =>  $FilePath,
+                        'SourceFile' => $file,
+                        'StorageClass' => 'REDUCED_REDUNDANCY'
+                    )
+                );
+
+                edit_meta($id,$FullLink);
+            } catch (S3Exception $e) {
+                die('Error:' . $e->getMessage());
+            } catch (Exception $e) {
+                die('Error:' . $e->getMessage());
+            } 
+        }elseif($opcionSelect != 'No seleccionar ficha'){
+            $FilePath = $folder . $opcionSelect;
+            $FullLink = $S3Path . $FilePath;
             edit_meta($id,$FullLink);
-        } catch (S3Exception $e) {
-            die('Error:' . $e->getMessage());
-        } catch (Exception $e) {
-            die('Error:' . $e->getMessage());
-        } 
-    }else{
-        return;
-    }
+
+        }else{
+            return;
+        }    
 }
 
 function edit_meta($id,$FullLink){
@@ -145,11 +151,24 @@ function getObjects(){
 }
 
 function filterObjects($objects, $condition){
+    $config = require('configS3.php');
     $objectsArray = array(
-        "0" => ""
+        "0" => "No seleccionar ficha"
+    );
+    $search = array(
+        $config['s3']['folder'].'/'
+    );
+    
+    $replace = array(
+        ''
     );
     foreach($objects as $object) {
-        $objectsArray[] = $object['Key'];
+        if($object['Key'] != $config['s3']['folder'].'/'){
+            if (strpos($object['Key'], $condition)) {
+                $doc = str_replace( $search, $replace, $object['Key'] );
+                $objectsArray[] = $doc;
+            }
+        }
     }
     return $objectsArray;
 }
