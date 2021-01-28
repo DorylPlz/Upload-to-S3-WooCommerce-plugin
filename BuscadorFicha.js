@@ -5,7 +5,7 @@ jQuery(document).ready(function($) {
     var data = { txtbuscar: buscadorInput, action:'BuscadorFicha_process'};
     var loc = window.location.pathname;
     var dir = loc.substring(0, loc.lastIndexOf('/'));
-    var path = dir.toLowerCase(loc.substring(0, loc.lastIndexOf('/')));
+    var path = dir.toLowerCase(dir);
     $.ajax({
       type: "POST",
       dataType: "json",
