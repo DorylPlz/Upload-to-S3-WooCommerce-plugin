@@ -8,8 +8,10 @@ Author: Daryl Olivares
 Author URI: https://github.com/DorylPlz
 License: GPL2
 */
+require 'vendor/autoload.php';
+
 use Aws\S3\S3Client;
-require 'C:/Users/daryl/vendor/autoload.php';
+use Aws\S3\Exception\S3Exception;
 
 add_action( 'woocommerce_product_options_advanced', 'form');
 add_action('post_edit_form_tag', 'add_post_enctype');
@@ -224,7 +226,7 @@ class fichas_Widget extends WP_Widget {
             if($ManualPDF != NULL){
 
                 echo '<ul>
-                            <li><a href="'.$ManualPDF.'">Manual de Producto</a></li>
+                            <li><a href="'.$ManualPDF.'" download="Manual.PDF">Manual de Producto</a></li>
                         </ul>';    
                     echo $after_widget;
             }else{
