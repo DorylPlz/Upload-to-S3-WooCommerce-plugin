@@ -8,7 +8,7 @@ Author: Daryl Olivares
 Author URI: https://github.com/DorylPlz
 License: GPL2
 */
-require 'vendor/autoload.php';
+require 'aws/aws-autoloader.php';
 
 use Aws\S3\S3Client;
 use Aws\S3\Exception\S3Exception;
@@ -115,7 +115,7 @@ function PDF_save_file( $id, $post ){
             } catch (Exception $e) {
                 die('Error:' . $e->getMessage());
             } 
-        }elseif($opcionSelect != 'No seleccionar ficha'){
+        }elseif($opcionSelect != 'No seleccionar ficha' || $opcionSelect != NULL){
             $FilePath = $folder . $opcionSelect;
             $FullLink = $S3Path . $FilePath;
             edit_meta($id,$FullLink);

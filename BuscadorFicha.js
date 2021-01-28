@@ -3,10 +3,13 @@ jQuery(document).ready(function($) {
   $('#botonBuscar').on('click',function(e){
     var buscadorInput = document.getElementById("buscador").value;
     var data = { txtbuscar: buscadorInput, action:'BuscadorFicha_process'};
+    var loc = window.location.pathname;
+    var dir = loc.substring(0, loc.lastIndexOf('/'));
+    var path = dir.toLowerCase(loc.substring(0, loc.lastIndexOf('/')));
     $.ajax({
       type: "POST",
       dataType: "json",
-      url: document.location.protocol+'//'+document.location.host+'/CursosWp/wp-admin/admin-ajax.php',
+      url: '//'+document.location.host+path+'/admin-ajax.php',
       data: data,
       success: function( response, data ) 
       { 
