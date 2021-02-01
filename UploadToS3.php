@@ -26,6 +26,10 @@ function fichas_widget_init() {
 
 function BuscadorFicha_init(){
     wp_register_script('Buscador_Ficha-js', plugins_url('/BuscadorFicha.js', __FILE__), array('jquery'));
+    wp_localize_script( 'Buscador_Ficha-js', 'ajax_object', array(
+        'url' => admin_url('admin-ajax.php'),
+        'hook' => 'BuscadorFicha_process'
+    ) );
     wp_enqueue_script('jquery');
     wp_enqueue_script('Buscador_Ficha-js');
 }
