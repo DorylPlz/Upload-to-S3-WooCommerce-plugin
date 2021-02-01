@@ -18,22 +18,21 @@ add_action('post_edit_form_tag', 'add_post_enctype');
 add_action( 'woocommerce_process_product_meta', 'PDF_save_file', 10, 2 );
 add_action('admin_head-post.php', 'BuscadorFicha_init');
 add_action('widgets_init', 'fichas_widget_init');
-add_action('wp_ajax_nopriv_BuscadorFicha_process', 'BuscadorFicha_process');
 
 function fichas_widget_init() {
     register_widget('fichas_Widget');
 }
 
 function BuscadorFicha_init(){
-    wp_register_script('Buscador_Ficha-js', plugins_url('/BuscadorFicha.js', __FILE__), array('jquery'));
-    wp_localize_script( 'Buscador_Ficha-js', 'ajax_object', array(
-        'url' => admin_url('admin-ajax.php'),
-        'hook' => 'BuscadorFicha_process'
-    ) );
-    wp_enqueue_script('jquery');
-    wp_enqueue_script('Buscador_Ficha-js');
-}
+    wp_enqueue_script('Buscador_Ficha', plugins_url('/BuscadorFicha.js', __FILE__), array('jquery'));
 
+    wp_localize_script( 'Buscador_Ficha', 'ajax_var', array(
+        'url'    => admin_url( 'admin-ajax.php' ),
+        'action' => 'BuscadorFicha_process'
+    ) );
+}
+add_action('wp_ajax_nopriv_BuscadorFicha_process', 'BuscadorFicha_process');
+add_action('wp_ajax_BuscadorFicha_process', 'BuscadorFicha_process');
 function BuscadorFicha_process(){
     $texto = esc_attr($_POST['txtbuscar']);
     $objects = getObjects();
