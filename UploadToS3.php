@@ -188,14 +188,13 @@ function PDF_save_file( $id, $post ){
                 } catch (Exception $e) {
                     die('Error:' . $e->getMessage());
                 } 
-            }elseif($opcionSelect != 'No seleccionar ficha' || $opcionSelect != NULL){
-                $FilePath = $folder . $opcionSelect;
-                $FullLink = $S3Path . $FilePath;
-                edit_meta($id,$FullLink);
-
+            }elseif($opcionSelect != "0"){
+                    $FilePath = $folder . $opcionSelect;
+                    $FullLink = $S3Path . $FilePath;
+                    edit_meta($id,$FullLink);
             }else{
                 return;
-            }  
+            }
     }  
 }
 
@@ -237,9 +236,7 @@ function getObjects(){
 function filterObjects($objects, $condition){
     $config = require('configS3.php');
     //Agrega el campo "No seleccionar Ficha" para que se le muestre de primera opción al usuario
-    $objectsArray = array(
-        "0" => "No seleccionar ficha"
-    );
+    $objectsArray = array();
     //Condiciones para eliminar la carpeta de S3 en el nombre final
     $search = array(
         $config['s3']['folder'].'/'

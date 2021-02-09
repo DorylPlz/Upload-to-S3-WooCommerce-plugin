@@ -1,4 +1,6 @@
 jQuery(document).ready(function($) {
+  $("#select_ficha").empty();
+  $("#select_ficha").append("<option value='0'></option>");
   //document.getElementById("select_ficha").style.display = "none";
   $('#botonBuscar').on('click',function(e){
     var buscadorInput = document.getElementById("buscador").value;
@@ -17,9 +19,11 @@ jQuery(document).ready(function($) {
             var len = response.length;
 
             $("#select_ficha").empty();
+            $("#select_ficha").append("<option value='0'>No seleccionar ficha</option>");
             for( var i = 0; i<len; i++){
                 var id = response[i];
                 
+               
                 $("#select_ficha").append("<option value='"+id+"'>"+id+"</option>");
 
             }
